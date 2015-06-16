@@ -1,20 +1,26 @@
-<project xmlns:ivy="antlib:org.apache.ivy.ant"
-         name="EntityProject" default="build" basedir="./">
+<project name="EntityProject" default="build" basedir="./"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="antlib:org.apache.ivy.ant ">
     <property name="src.dir" value="src"/>
     <property name="build.dir" location="bin"/>
-    <property name="dist.dir" location="dist"/>
+    <property name="dist.dir" location="dist" />
+    <property name="dist.lib.dir" location="dist/lib" />
     <property name="projectName" value="Project"/>
-    <property name="lib.dir" value="lib" />
-
-    <target name="resolve" description="retrieve dependencies with ivy">
-        <ivy:retrieve />
-    </target>
+    <property name="lib.dir" value="lib"/>
+    <property name="main-class" value="com.softserve.project.Main" />
 
     <target name="ivy" description="Install ivy">
-        <mkdir dir="${user.home}/.ant/lib" />
+        <mkdir dir="${user.home}/.ant/lib"/>
         <get dest="${user.home}/.ant/lib/ivy.jar"
-             src="http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/2.4.0-rc1/ivy-2.4.0-rc1.jar" />
+             src="http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/2.4.0-rc1/ivy-2.4.0-rc1.jar"/>
     </target>
+
+    <path id="classpath">
+        <fileset dir="${basedir}/">
+            <include name="${lib.dir}/*.jar" />
+            <exclude name="${lib.dir}/*sources.jar"/>
+            <exclude name="${lib.dir}/*javadoc.jar"/>
+        </fileset>
+    </path>
 
     <target name="run" depends="dist">
         <java classname="com.softserve.project.Main">
@@ -31,15 +37,46 @@
     </target>
 
     <target name="compile" depends="init" description="compile the source ">
-        <javac includeantruntime="false" srcdir="${src.dir}" destdir="${build.dir}"/>
+        <javac includeantruntime="false" srcdir="${src.dir}" destdir="${build.dir}"  classpathref="classpath" />
     </target>
+
+    <!-- constructs the external libraries classpath name -->
+    <pathconvert property="classpath.name" pathsep=" ">
+        <path refid="classpath" />
+        <mapper>
+            <chainedmapper>
+                <flattenmapper />
+                <globmapper from="*.jar" to="lib/*.jar" />
+            </chainedmapper>
+        </mapper>
+    </pathconvert>
 
     <target name="dist" depends="compile" description="package, output to JAR">
         <mkdir dir="${dist.dir}"/>
 
         <jar jarfile="${dist.dir}/${projectName}.jar" basedir="${build.dir}">
             <manifest>
-                <attribute name="Main-Class" value="com.softserve.project.Main"/>
+                <attribute name="Main-Class" value="${main-class}"/>
+            </manifest>
+        </jar>
+    </target>
+    <target name="copy-dependencies">
+        <copy todir="${dist.lib.dir}">
+            <fileset dir="${lib.dir}" includes="**/*.jar" excludes="**/*sources.jar, **/*javadoc.jar" />
+        </copy>
+    </target>
+
+    <target name="jar" depends="compile, copy-dependencies" description="package, output to JAR">
+
+        <echo message="classpath.name : ${classpath.name} " />
+
+        <mkdir dir="${dist.dir}" />
+        <mkdir dir="${dist.lib.dir}" />
+
+        <jar jarfile="${dist.dir}/${projectName}.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}" />
+                <attribute name="Class-Path" value="${classpath.name}" />
             </manifest>
         </jar>
     </target>
@@ -49,6 +86,6 @@
         <delete dir="${dist.dir}"/>
     </target>
 
-    <target name="build" depends="clean, compile, dist"/>
+    <target name="build" depends="clean, compile, dist, ivy, run, jar"/>
 
 </project>
