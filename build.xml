@@ -1,9 +1,20 @@
-<project name="EntityProject" default="build" basedir="./">
+<project xmlns:ivy="antlib:org.apache.ivy.ant"
+         name="EntityProject" default="build" basedir="./">
     <property name="src.dir" value="src"/>
     <property name="build.dir" location="bin"/>
     <property name="dist.dir" location="dist"/>
     <property name="projectName" value="Project"/>
     <property name="lib.dir" value="lib" />
+
+    <target name="resolve" description="retrieve dependencies with ivy">
+        <ivy:retrieve />
+    </target>
+
+    <target name="ivy" description="Install ivy">
+        <mkdir dir="${user.home}/.ant/lib" />
+        <get dest="${user.home}/.ant/lib/ivy.jar"
+             src="http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/2.4.0-rc1/ivy-2.4.0-rc1.jar" />
+    </target>
 
     <target name="run" depends="dist">
         <java classname="com.softserve.project.Main">

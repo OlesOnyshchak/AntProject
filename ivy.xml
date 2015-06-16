@@ -1,0 +1,7 @@
+<ivy-module version="2.0">
+    <info organisation="org.apache" module="Project" />
+    <dependencies>
+        <dependency org="org.slf4j" name="slf4j-api" rev="1.7.6" />
+        <dependency org="ch.qos.logback" name="logback-classic" rev="1.1.2" />
+    </dependencies>
+</ivy-module>
