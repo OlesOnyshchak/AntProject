@@ -1,0 +1,13 @@
+CREATE PROCEDURE $procedureName
+AS
+CREATE TABLE $tableName(
+#foreach($column in $columns.entrySet())
+    #if($foreach.index != $columns.size() - 1)
+        $column.key $column.value.concat(',')
+    #else
+        $column.key $column.value
+    #end
+#end
+);
+
+
